@@ -3,9 +3,9 @@ package main
 import (
 	"eventBooking/database"
 	"eventBooking/models"
+	"eventBooking/routes"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"net/http"
 )
 
 func main() {
@@ -17,27 +17,20 @@ func main() {
 		return
 	}
 
-	database.InitDB()
-	models.Migrate()
+	err = database.InitDB()
 
-	server.GET("/", getEvents)
-	server.POST("/create-event", createEvent)
-
-	server.Run(":8080")
-}
-
-func getEvents(context *gin.Context) {
-	events := models.GetEvents()
-	context.JSON(200, events)
-}
-
-func createEvent(context *gin.Context) {
-	var event models.Event
-	err := context.ShouldBindJSON(&event)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		panic("Failed to connect to database!")
 		return
 	}
-	event.Save()
-	context.JSON(http.StatusCreated, gin.H{"status": "Event created successfully"})
+
+	models.Migrate()
+
+	routes.RegisterServer(server)
+
+	err = server.Run(":8080")
+
+	if err != nil {
+		panic("Failed to start server!")
+	}
 }

@@ -9,12 +9,11 @@ import (
 
 var DB *gorm.DB
 
-func InitDB() {
+func InitDB() error {
 	err := godotenv.Load()
 
 	if err != nil {
-		panic("Failed to load .env file!")
-		return
+		return err
 	}
 
 	dsn := os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASSWORD") + "@tcp(" + os.Getenv("DB_HOST") + ":" + os.Getenv("DB_PORT") + ")/" + os.Getenv("DB_NAME")
@@ -22,6 +21,8 @@ func InitDB() {
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
-		panic("Failed to connect to database!" + err.Error())
+		return err
 	}
+
+	return nil
 }
